@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="hero mb-4">
+      <h2 class="h3">New X-ray submission</h2>
+      <p class="mb-0 text-light">Attach the chest X-ray and patient details to launch a prediction.</p>
+    </div>
+    <div class="card p-4">
+      {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+      <form method="post" action="/cases/new" enctype="multipart/form-data">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">First name</label>
+            <input class="form-control" name="first_name" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Last name</label>
+            <input class="form-control" name="last_name" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date of birth</label>
+            <input type="date" class="form-control" name="dob" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Gender</label>
+            <select class="form-select" name="gender">
+              <option value="">Select</option>
+              <option>Female</option>
+              <option>Male</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Model</label>
+            <select class="form-select" name="model_name" required>
+              <option value="pneumonia" selected>Pneumonia (Chest X-ray)</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" rows="3" name="notes"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Upload X-ray image (PNG/JPG)</label>
+            <input class="form-control" type="file" name="xray" accept="image/png,image/jpeg" required />
+          </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+          <button class="btn btn-primary" type="submit">Submit case</button>
+          <a class="btn btn-outline-secondary" href="/dashboard">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4 align-items-stretch mb-4">
+  <div class="col-lg-8">
+    <div class="hero h-100">
+      <h1 class="display-6 fw-semibold">MedAI Dashboard</h1>
+      <p class="mt-2 mb-4 text-light">Triage flow powered by your AI model. Highest urgency cases float to the top automatically.</p>
+      <a class="btn btn-primary" href="/cases/new">Add New Case</a>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="stat-card mb-3">
+      <div class="text-uppercase text-muted small">Total Cases</div>
+      <div class="display-6 fw-semibold">{{ cases|length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="text-uppercase text-muted small">Rush Queue</div>
+      <div class="display-6 fw-semibold">
+        {{ cases|selectattr("urgency", "equalto", "rush")|list|length }}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if cases %}
+  <div class="case-grid">
+    {% for case in cases %}
+      <div class="case-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="badge {{ 'badge-rush' if case.urgency == 'rush' else 'badge-normal' }} text-white text-uppercase">
+            {{ case.urgency }}
+          </span>
+          <small class="text-muted">{{ case.created_at }}</small>
+        </div>
+        <h3 class="h5 mt-3 mb-1">{{ case.first_name }} {{ case.last_name }}</h3>
+        <div class="text-muted">{{ case.gender or '—' }} • {{ case.dob or 'Unknown DOB' }}</div>
+        <div class="mt-2">
+          <div class="fw-semibold">Prediction: {{ case.prediction_label }}</div>
+          <div class="text-muted">Probability: {{ '%.2f'|format(case.probability * 100) }}%</div>
+        </div>
+        <a class="stretched-link" href="/cases/{{ case.id }}"></a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card p-4">
+    <p class="mb-0">No cases yet. Upload the first X-ray to get started.</p>
+  </div>
+{% endif %}
+{% endblock %}
