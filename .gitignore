@@ -1,0 +1,8 @@
+.DS_Store
+__pycache__/
+evaluate.py
+PneumoniaNet.py
+metriche_valutazione/
+README.md
+REQUIREMENTS.MD
+AGENTS.md
