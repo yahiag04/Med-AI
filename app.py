@@ -5,7 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.status import HTTP_302_FOUND
 
 from config import APP_SECRET_KEY, BASE_DIR, UPLOAD_DIR, WEIGHTS_PATH
-from db import DB_PATH, init_db
+from db import init_db
 from routers.auth import router as auth_router
 from routers.cases import router as cases_router
 from routers.dashboard import router as dashboard_router
@@ -27,7 +27,7 @@ app.include_router(dashboard_router)
 
 @app.on_event("startup")
 def on_startup() -> None:
-    init_db(DB_PATH)
+    init_db()
     device = get_device()
     app.state.model = load_model(WEIGHTS_PATH, device)
     app.state.device = device

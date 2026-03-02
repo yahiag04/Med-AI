@@ -1,5 +1,5 @@
-import sqlite3
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -22,9 +22,9 @@ def register(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
-    db: sqlite3.Connection = Depends(get_db),
+    db: Any = Depends(get_db),
 ) -> HTMLResponse:
-    existing = fetch_one(db, "SELECT id FROM users WHERE username = ?", (username,))
+    existing = fetch_one(db, "SELECT id FROM users WHERE username = %s", (username,))
     if existing:
         return templates.TemplateResponse(
             "register.html",
@@ -33,7 +33,7 @@ def register(
     password_hash, salt = hash_password(password)
     execute(
         db,
-        "INSERT INTO users (username, password_hash, salt, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO users (username, password_hash, salt, created_at) VALUES (%s, %s, %s, %s)",
         (username, password_hash, salt, datetime.utcnow().isoformat()),
     )
     return RedirectResponse(url="/login", status_code=HTTP_302_FOUND)
@@ -49,9 +49,9 @@ def login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
-    db: sqlite3.Connection = Depends(get_db),
+    db: Any = Depends(get_db),
 ) -> HTMLResponse:
-    user = fetch_one(db, "SELECT id, password_hash, salt FROM users WHERE username = ?", (username,))
+    user = fetch_one(db, "SELECT id, password_hash, salt FROM users WHERE username = %s", (username,))
     if not user or not verify_password(password, user["password_hash"], user["salt"]):
         return templates.TemplateResponse(
             "login.html",

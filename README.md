@@ -13,7 +13,7 @@ This project is an academic prototype focused on machine learning experimentatio
 - X-ray upload + pneumonia prediction
 - Urgency sorting (pneumonia cases prioritized)
 - Lightweight, modern UI with Bootstrap
-- SQLite storage
+- PostgreSQL storage
 
 ---
 
@@ -21,7 +21,7 @@ This project is an academic prototype focused on machine learning experimentatio
 
 - Python
 - FastAPI
-- SQLite
+- PostgreSQL
 - PyTorch
 - Bootstrap
 
@@ -31,6 +31,7 @@ This project is an academic prototype focused on machine learning experimentatio
 
 ```bash
 pip install -r requirements.txt
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/medai"
 uvicorn app:app --reload
 ```
 
@@ -46,6 +47,12 @@ export APP_SECRET_KEY="your-strong-secret"
 
 ```bash
 docker compose up --build
+```
+
+If you have legacy SQLite data in `app.db`, migrate it with:
+
+```bash
+python scripts/migrate_sqlite_to_postgres.py --sqlite-path app.db --truncate
 ```
 
 ---

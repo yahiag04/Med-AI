@@ -1,4 +1,4 @@
-import sqlite3
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
@@ -13,7 +13,7 @@ router = APIRouter()
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
     request: Request,
-    db: sqlite3.Connection = Depends(get_db),
+    db: Any = Depends(get_db),
     user: dict = Depends(require_user),
 ) -> HTMLResponse:
     rows = fetch_all(

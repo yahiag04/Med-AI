@@ -1,8 +1,7 @@
 import shutil
-import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -10,7 +9,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.status import HTTP_302_FOUND
 
 from config import UPLOAD_DIR
-from db import get_db, fetch_one, execute
+from db import execute, execute_returning_id, fetch_one, get_db
 from deps import require_user
 from services.model import predict_image
 from ui import templates
@@ -35,7 +34,7 @@ def create_case(
     gender: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     xray: UploadFile = File(...),
-    db: sqlite3.Connection = Depends(get_db),
+    db: Any = Depends(get_db),
     user: dict = Depends(require_user),
 ) -> HTMLResponse:
     if not xray.filename:
@@ -59,11 +58,12 @@ def create_case(
     label, prob = predict_image(request.app.state.model, request.app.state.device, file_path)
     urgency = "rush" if label == "pneumonia" else "normal"
 
-    patient_id = execute(
+    patient_id = execute_returning_id(
         db,
         """
         INSERT INTO patients (first_name, last_name, dob, gender, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING id
         """,
         (first_name, last_name, dob, gender, notes, datetime.utcnow().isoformat()),
     )
@@ -72,7 +72,7 @@ def create_case(
         db,
         """
         INSERT INTO xrays (patient_id, filename, original_filename, prediction_label, probability, urgency, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
         (patient_id, file_id, xray.filename, label, prob, urgency, datetime.utcnow().isoformat()),
     )
@@ -84,7 +84,7 @@ def create_case(
 def case_detail(
     case_id: int,
     request: Request,
-    db: sqlite3.Connection = Depends(get_db),
+    db: Any = Depends(get_db),
     user: dict = Depends(require_user),
 ) -> HTMLResponse:
     row = fetch_one(
@@ -95,7 +95,7 @@ def case_detail(
                p.first_name, p.last_name, p.dob, p.gender, p.notes
         FROM xrays x
         JOIN patients p ON p.id = x.patient_id
-        WHERE x.id = ?
+        WHERE x.id = %s
         """,
         (case_id,),
     )
@@ -112,18 +112,18 @@ def case_detail(
 def delete_case(
     case_id: int,
     request: Request,
-    db: sqlite3.Connection = Depends(get_db),
+    db: Any = Depends(get_db),
     user: dict = Depends(require_user),
 ) -> RedirectResponse:
     row = fetch_one(
         db,
-        "SELECT filename FROM xrays WHERE id = ?",
+        "SELECT filename FROM xrays WHERE id = %s",
         (case_id,),
     )
     if not row:
         raise HTTPException(status_code=404)
 
-    execute(db, "DELETE FROM xrays WHERE id = ?", (case_id,))
+    execute(db, "DELETE FROM xrays WHERE id = %s", (case_id,))
 
     file_path = UPLOAD_DIR / row["filename"]
     if file_path.exists():
